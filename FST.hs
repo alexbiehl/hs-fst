@@ -10,6 +10,7 @@ import           Data.Hashable
 import qualified Data.List as List
 import           Data.Monoid
 import           Data.Function (on)
+import           Data.Char (ord)
 
 type StateRef = Word64
 
@@ -105,8 +106,8 @@ compileSuffix replaceOrRegister register sx = go register sx
 
 uncompiled :: [Word8] -> [UncompiledState]
 uncompiled []     = []
-uncompiled (w:wx) = (UncompiledState w arcs):(uncompiled wx) 
-  where 
+uncompiled (w:wx) = (UncompiledState w arcs):(uncompiled wx)
+  where
     arcs = if List.null wx then [finalArc] else []
 
 uncompiledBS :: ByteString -> [UncompiledState]
@@ -177,4 +178,20 @@ finalArc :: Arc
 finalArc = Arc 0 finalStateRef
 
 main :: IO ()
-main = putStrLn "Hallo welt"
+main = do
+  let compile      = compileSuffix replaceOrRegister
+      ord'         = fromIntegral . ord
+      r0           = emptyRegister
+      (exArc, r1)  = compile r0 (uncompiledBS "ex")
+      (ienArc, r2) = compile r1 (uncompiledBS "ien")
+      (alArc, r3)  = compile r2 [UncompiledState (ord' 'a') [], UncompiledState (ord' 'l') [ienArc, exArc]]
+
+  putStrLn (show exArc)
+  putStrLn (show r1)
+
+  putStrLn (show ienArc)
+  putStrLn (show r2)
+
+  putStrLn (show alArc)
+  putStrLn (show r3)
+
