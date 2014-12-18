@@ -97,12 +97,9 @@ compileSuffix replaceOrRegister register sx = go register sx
       let
         (arcs', register') = case sx of
           -- ^ We are really at the end of the word
-          [] | List.null arcs -> ((Arc byte finalStateRef):arcs, register)
-          -- ^ Nope, this is just the prefix of an already merged word
-          --   (this works since the words need to be inserted in sorted order)
-             | otherwise      -> (arcs, register)
+          [] -> (arcs, register)
           -- ^ Traverse till the end
-          _                   -> let (a, r) = go register sx in (a:arcs, r)
+          _  -> let (a, r) = go register sx in (a:arcs, r)
         (ref, register'') = replaceOrRegister arcs' register'
       in (Arc byte ref, register'')
 
