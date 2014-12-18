@@ -1,5 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Data.FSA where
+module Data.FSA(
+    mkFST
+  ) where
 
 import           Data.FSA.Types
 import           Data.FSA.Register.Hashed
@@ -34,9 +36,9 @@ compileSuffix replaceOrRegister register sx = go register sx
       let
         (arcs', register') = case sx of
           [] -> (arcs, register)
-          -- ^ We are really at the end of the word
+          -- We are really at the end of the word
           _  -> let (a, r) = go register sx in (a:arcs, r)
-          -- ^ Traverse till the end
+          -- Traverse till the end
         (ref, register'') = replaceOrRegister arcs' register'
       in (Arc byte ref, register'')
 
@@ -68,22 +70,25 @@ compile' :: Compiler a
          -> a
          -> ([UncompiledState], a)
 compile' _ prev new [] register = (prev:new, register)
-  -- ^ New word has whole old as prefix, just path sharing
+  -- New word has whole old as prefix, just path sharing
 
 compile' ror prev new@(n:nx) old@(o:ox) register
-  -- ^ New word has some common prefix
+  -- New word has some common prefix
   | ucByte n == ucByte o =
-    -- ^ If words are equal, recurse
+    -- If words are equal, recurse
     let
       (path, register') = compile' ror o nx ox register
     in (prev:path, register')
   | otherwise =
-    -- ^ If we reached unequal prefixes, compile suffix of old word
+    -- If we reached unequal prefixes, compile suffix of old word
     let
       (arc, register') = compileSuffix ror register old
       path = (prev { ucArcs = arc:(ucArcs prev) }):new
     in (path, register')
 
+
+-- | `mkFST` creates an finite-state automaton from a sorted list of
+--   `Word16` codepoints. The compiling behaviour is pluggable.
 mkFST :: Compiler a -> a -> [[Word16]] -> a
 mkFST ror register wordx = go register wordx [] []
   where

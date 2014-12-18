@@ -1,7 +1,8 @@
 module Data.FSA.Register.Hashed(
-    HashedRegister
-  , empty
-  , replaceOrRegister
+    HashedRegister -- | A simple register which uses a strict `HashMap` to aid minimization proocess
+  , empty          -- | Creates an empty register for use with `mkFST`
+  , replaceOrRegister -- | Use this as compiling function for for `mkFST`
+  , automaton       -- | Can be used to extract the constructed automaton as a `HashMap`
   ) where
 
 import           Data.FSA.Types
