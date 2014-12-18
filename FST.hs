@@ -106,6 +106,12 @@ compileSuffix replaceOrRegister register sx = go register sx
         (ref, register'') = replaceOrRegister arcs' register'
       in (Arc byte ref, register'')
 
+uncompiled :: [Word8] -> [UncompiledState]
+uncompiled []     = []
+uncompiled (w:wx) = (UncompiledState w arcs):(uncompiled wx) 
+  where 
+    arcs = if List.null wx then [finalArc] else []
+
 decompile :: ByteString -> [UncompiledState]
 decompile = fmap (\b -> UncompiledState b []) . ByteString.unpack
 
@@ -170,8 +176,8 @@ errorStateRef = 1
 finalStateRef :: StateRef
 finalStateRef = 0
 
-
-
+finalArc :: Arc
+finalArc = Arc 0 finalStateRef
 
 main :: IO ()
 main = putStrLn "Hallo welt"
