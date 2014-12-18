@@ -17,6 +17,8 @@ import           Data.Char (chr, ord)
 
 type ReplaceOrRegister = Compiler HashedRegister
 
+type RootArcs = [Arc]
+
 data UncompiledState = UncompiledState {
     ucByte :: !Word16
   , ucArcs :: ![Arc]
