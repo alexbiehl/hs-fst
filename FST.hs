@@ -96,10 +96,10 @@ compileSuffix replaceOrRegister register sx = go register sx
     go register ((UncompiledState byte arcs):sx) =
       let
         (arcs', register') = case sx of
-          -- ^ We are really at the end of the word
           [] -> (arcs, register)
-          -- ^ Traverse till the end
+          -- ^ We are really at the end of the word
           _  -> let (a, r) = go register sx in (a:arcs, r)
+          -- ^ Traverse till the end
         (ref, register'') = replaceOrRegister arcs' register'
       in (Arc byte ref, register'')
 
