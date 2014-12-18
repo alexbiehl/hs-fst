@@ -22,18 +22,6 @@ data UncompiledState = UncompiledState {
   , ucArcs :: ![Arc]
   } deriving (Eq, Show)
 
-test1'Uncompiled :: [UncompiledState]
-test1'Uncompiled = uncompiledBS test1
-
-test1 :: ByteString
-test1 = "alex"
-
-test2'Uncompiled :: [UncompiledState]
-test2'Uncompiled = uncompiledBS test2
-
-test2 :: ByteString
-test2 = "alien"
-
 compileSuffix :: Compiler a
               -> a
               -> [UncompiledState]
@@ -121,6 +109,20 @@ finalArc = Arc 0 finalStateRef
 mkFST'Test :: [ByteString] -> HashedRegister
 mkFST'Test = mkFST'BS replaceOrRegister empty
 
+
+{-
+test1'Uncompiled :: [UncompiledState]
+test1'Uncompiled = uncompiledBS test1
+
+test1 :: ByteString
+test1 = "alex"
+
+test2'Uncompiled :: [UncompiledState]
+test2'Uncompiled = uncompiledBS test2
+
+test2 :: ByteString
+test2 = "alien"
+
 testBS :: [ByteString]
 testBS = ["alex", "alien", "see", "ulrich", "vogel", "zeichen", "ziehen"]
-
+-}
