@@ -192,9 +192,6 @@ finalStateRef = 0
 finalArc :: Arc
 finalArc = Arc 0 finalStateRef
 
-root :: UncompiledState
-root = UncompiledState 0 []
-
 main :: IO ()
 main = do
   let compile      = compileSuffix replaceOrRegister
