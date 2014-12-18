@@ -140,12 +140,18 @@ compile' :: ReplaceOrRegister
          -> [UncompiledState]
          -> Register
          -> ([UncompiledState], Register)
+compile' _ prev new [] register = (prev:new, register)
+  -- ^ New word has whole old as prefix, just path sharing
+
 compile' ror prev new@(n:nx) old@(o:ox) register
+  -- ^ New word has some common prefix
   | ucByte n == ucByte o =
+    -- ^ If words are equal, recurse
     let
       (path, register') = compile' ror o nx ox register
     in (prev:path, register')
   | otherwise =
+    -- ^ If we reached unequal prefixes, compile suffix of old word
     let
       (arc, register') = compileSuffix ror register old
       path = (prev { ucArcs = arc:(ucArcs prev) }):new
