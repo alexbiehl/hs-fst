@@ -3,23 +3,25 @@
 
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString as ByteString
-import           Data.Word (Word8, Word64)
+import           Data.Word (Word16, Word64)
 import           Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HashMap
 import           Data.Hashable
 import qualified Data.List as List
 import           Data.Monoid
 import           Data.Function (on)
-import           Data.Char (ord)
+import           Data.Char (chr, ord)
 
 type StateRef = Word64
 
 data State = State [Arc]
 
 data Arc = Arc {
-   arcByte :: !Word8
+   arcByte :: !Word16
  , arcTo   :: !StateRef
 } deriving (Eq, Show)
+
+type RootArcs = [Arc]
 
 instance Hashable Arc where
   hashWithSalt s (Arc b t) = hashWithSalt (hashWithSalt s b) t
@@ -29,8 +31,12 @@ data Register = Register {
   , regNextRef :: !StateRef
 } deriving (Eq, Show)
 
+type Compiler a = [Arc] -> a -> (StateRef, a)
+
+type ReplaceOrRegister = Compiler Register
+
 data UncompiledState = UncompiledState {
-    ucByte :: !Word8
+    ucByte :: !Word16
   , ucArcs :: ![Arc]
   } deriving (Eq, Show)
 
@@ -75,11 +81,11 @@ ReplaceOrRegister wird das Compilerbackend, bis jetzt nur Dummy
 
 -}
 
-type ReplaceOrRegister = [Arc] -> Register -> (StateRef, Register)
-
 emptyRegister = Register mempty 1
 
-replaceOrRegister :: [Arc] -> Register -> (StateRef, Register)
+replaceOrRegister :: [Arc]
+                  -> Register
+                  -> (StateRef, Register)
 replaceOrRegister arcs (Register arcMap nextRef) =
   case HashMap.lookup arcs arcMap of
     Just stateRef -> (stateRef, Register arcMap nextRef)
@@ -91,7 +97,10 @@ replaceOrRegister arcs (Register arcMap nextRef) =
                     }
       in (nextRef, register')
 
-compileSuffix :: ReplaceOrRegister -> Register -> [UncompiledState] -> (Arc, Register)
+compileSuffix :: ReplaceOrRegister
+              -> Register
+              -> [UncompiledState]
+              -> (Arc, Register)
 compileSuffix replaceOrRegister register sx = go register sx
   where
     go register ((UncompiledState byte arcs):sx) =
@@ -104,37 +113,43 @@ compileSuffix replaceOrRegister register sx = go register sx
         (ref, register'') = replaceOrRegister arcs' register'
       in (Arc byte ref, register'')
 
-uncompiled :: [Word8] -> [UncompiledState]
+uncompiled :: [Word16]
+           -> [UncompiledState]
 uncompiled []     = []
 uncompiled (w:wx) = (UncompiledState w arcs):(uncompiled wx)
   where
     arcs = if List.null wx then [finalArc] else []
 
 uncompiledBS :: ByteString -> [UncompiledState]
-uncompiledBS = uncompiled . ByteString.unpack
+uncompiledBS = uncompiled . map fromIntegral . ByteString.unpack
 
-compileList :: [ByteString] -> StateRef
-compileList bs = go bs [] emptyRegister
+compile :: ReplaceOrRegister
+        -> [UncompiledState]
+        -> [UncompiledState]
+        -> Register
+        -> (RootArcs, [UncompiledState], Register)
+compile ror new old register = (rootArcs, path, register')
   where
-    go (b:bx) path register =
-      let
-        decompiled = uncompiledBS b
-        prefix = commonPrefix
-                  (map UncompiledStateByte path)
-                  (map UncompiledStateByte decompiled)
-        suffix = map toUncompiledState $
-                  stripPrefix prefix (map UncompiledStateByte path)
-      in undefined
+    dummyRoot                    = UncompiledState 0 []
+    (root:path, register')       = compile' ror dummyRoot new old register
+    (UncompiledState _ rootArcs) = root
 
--- | Find the common prefix
-commonPrefix :: (Eq e) => [e] -> [e] -> [e]
-commonPrefix _ [] = []
-commonPrefix [] _ = []
-commonPrefix (x:xs) (y:ys)
-  | x == y    = x : commonPrefix xs ys
-  | otherwise = []
-
-stripPrefix p xs = let Just rest = List.stripPrefix p xs in rest
+compile' :: ReplaceOrRegister
+         -> UncompiledState
+         -> [UncompiledState]
+         -> [UncompiledState]
+         -> Register
+         -> ([UncompiledState], Register)
+compile' ror prev new@(n:nx) old@(o:ox) register
+  | ucByte n == ucByte o =
+    let
+      (path, register') = compile' ror o nx ox register
+    in (prev:path, register')
+  | otherwise =
+    let
+      (arc, register') = compileSuffix ror register old
+      path = (prev { ucArcs = arc:(ucArcs prev) }):new
+    in (path, register')
 
 {-
 Der resultierende `Arc` wird dem vorhergehenden `UncompiledState` hinzugefügt
@@ -176,6 +191,9 @@ finalStateRef = 0
 
 finalArc :: Arc
 finalArc = Arc 0 finalStateRef
+
+root :: UncompiledState
+root = UncompiledState 0 []
 
 main :: IO ()
 main = do
