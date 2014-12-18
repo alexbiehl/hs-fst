@@ -41,13 +41,13 @@ instance Eq UncompiledStateByte where
   (==) = (==) `on` (ucByte . toUncompiledState)
 
 test1'Uncompiled :: [UncompiledState]
-test1'Uncompiled = map (\b -> UncompiledState b []) (ByteString.unpack test1)
+test1'Uncompiled = uncompiledBS test1
 
 test1 :: ByteString
 test1 = "alex"
 
 test2'Uncompiled :: [UncompiledState]
-test2'Uncompiled = map (\b -> UncompiledState b []) (ByteString.unpack test2)
+test2'Uncompiled = uncompiledBS test2
 
 test2 :: ByteString
 test2 = "alien"
@@ -112,15 +112,15 @@ uncompiled (w:wx) = (UncompiledState w arcs):(uncompiled wx)
   where 
     arcs = if List.null wx then [finalArc] else []
 
-decompile :: ByteString -> [UncompiledState]
-decompile = fmap (\b -> UncompiledState b []) . ByteString.unpack
+uncompiledBS :: ByteString -> [UncompiledState]
+uncompiledBS = uncompiled . ByteString.unpack
 
 compileList :: [ByteString] -> StateRef
 compileList bs = go bs [] emptyRegister
   where
     go (b:bx) path register =
       let
-        decompiled = decompile b
+        decompiled = uncompiledBS b
         prefix = commonPrefix
                   (map UncompiledStateByte path)
                   (map UncompiledStateByte decompiled)
