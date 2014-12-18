@@ -59,28 +59,6 @@ test2'Uncompiled = uncompiledBS test2
 test2 :: ByteString
 test2 = "alien"
 
-
-{-
-["a", "l", "e", "x"]
-["a", "l", "i", "e", "n"]
-["s", "e", "e"]
-
-activePath = map (\b -> UncompiledState b []) term
-
-Sobald ein Suffix kompiliert ist, wird dem letzten unkompilierten Knoten der letzte resultierende Arc hinzugefügt
-
-
-Kompilierung der Suffixe
-------------------------
-
-Gegeben sei eine Funktion `replaceOrRegister :: [Arcs] -> Register -> (StateRef, Register)`,
-welche überprüft, ob eine Knotenmenge schon im Register vorhanden ist, d.h. kompiliert wurde
-oder diese ansonsten in das Register einfügt.
-
-ReplaceOrRegister wird das Compilerbackend, bis jetzt nur Dummy
-
--}
-
 emptyRegister = Register mempty 1
 
 replaceOrRegister :: [Arc]
@@ -157,37 +135,29 @@ compile' ror prev new@(n:nx) old@(o:ox) register
       path = (prev { ucArcs = arc:(ucArcs prev) }):new
     in (path, register')
 
-{-
-Der resultierende `Arc` wird dem vorhergehenden `UncompiledState` hinzugefügt
+
+mkFST :: ReplaceOrRegister -> Register -> [[Word16]] -> Register
+  -- ^ Generalize over compilation function and return type
+mkFST ror register wordx = go register wordx [] []
+  where
+    go register []     _    rootArcs = register'
+      where
+        (ref, register') = replaceOrRegister rootArcs register
+
+    go register (w:wx) path rootArcs = go register' wx path' (rootArcs ++ rootArcs')
+      where
+        (rootArcs', path', register') = compile ror (uncompiled w) path register
 
 
+mkFST'BS :: ReplaceOrRegister -> Register -> [ByteString] -> Register
+mkFST'BS ror reg bs =
+  mkFST ror reg (map (map fromIntegral . ByteString.unpack) bs)
 
+mkFST'Test :: [ByteString] -> Register
+mkFST'Test = mkFST'BS replaceOrRegister emptyRegister
 
-1. Gibt es schon einen kompilierten Zustand, mit der Abbildung 'x -> final'
-  -> Wenn ja, verwende dessen StateRef
-  -> Nein, dann lege diesen im Register an (Kompiliere ihn -> StateRef)
-
-2. Gibt es schon einen kompilierten Zustand, mit der Abbildung 'e -> x'
-  -> Wenn ja, verwende dessen StateRef
-  -> Nein, dann lege diesen im Register an
-
-3. Gibt es schon einen kompilierten Zustand, mit der Abbildung 'n -> final'
-  -> Wenn ja, verwende dessen StateRef
-  -> Nein, dann lege diesen im Register an
-
-4. Gibt es schon einen kompilierten Zustand, mit der Abbildung 'i -> n'
-  -> Wenn ja, verwende dessen StateRef
-  -> Nein, dann lege diesem im Register an
-
-5. ... 'e -> i'
-
-6. ... 'l -> e'
-
-7. ... 'l -> l'
-
-8. ... 'a -> l'
-
--}
+testBS :: [ByteString]
+testBS = ["alex", "alien", "see", "ulrich", "vogel", "zeichen", "ziehen"]
 
 errorStateRef :: StateRef
 errorStateRef = 1
