@@ -94,17 +94,13 @@ compile' ror prev new@(n:nx) old@(o:ox) register
 mkFST :: Compiler a -> a -> [[Word16]] -> a
 mkFST ror register wordx = go register wordx [] []
   where
-    go register [] path rootArcs = register''
+    go register [] path rootArcs = register'
       where
-        (rootArc', register') = compileSuffix ror register path
-        (_, register'') = ror (rootArcs ++ [rootArc']) register'
+        (_, register') = compileSuffix ror register ((UncompiledState 0 rootArcs):path)
 
     go register (w:wx) path rootArcs = go register' wx path' (rootArcs ++ rootArcs')
       where
         (rootArcs', path', register') = compile ror (uncompiled w) path register
-
-
-
 
 mkFST'BS :: Compiler a -> a -> [ByteString] -> a
 mkFST'BS ror reg bs =
