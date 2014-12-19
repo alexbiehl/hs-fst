@@ -91,18 +91,18 @@ compile' ror prev new@(n:nx) old@(o:ox) register
 
 -- | `mkFST` creates an finite-state automaton from a sorted list of
 --   `Word16` codepoints. The compiling behaviour is pluggable.
-mkFST :: Compiler a -> a -> [[Word16]] -> a
+mkFST :: Compiler a -> a -> [[Word16]] -> (StateRef, a)
 mkFST ror register wordx = go register wordx [] []
   where
-    go register [] path rootArcs = register'
+    go register [] path rootArcs = (root, register')
       where
-        (_, register') = compileSuffix ror register ((UncompiledState 0 rootArcs):path)
+        (Arc _ root, register') = compileSuffix ror register ((UncompiledState 0 rootArcs):path)
 
     go register (w:wx) path rootArcs = go register' wx path' (rootArcs ++ rootArcs')
       where
         (rootArcs', path', register') = compile ror (uncompiled w) path register
 
-mkFST'BS :: Compiler a -> a -> [ByteString] -> a
+mkFST'BS :: Compiler a -> a -> [ByteString] -> (StateRef, a)
 mkFST'BS ror reg bs =
   mkFST ror reg (map (map fromIntegral . ByteString.unpack) bs)
 
@@ -115,7 +115,7 @@ finalStateRef = 0
 finalArc :: Arc
 finalArc = Arc 0 finalStateRef
 
-mkFST'Test :: [ByteString] -> Dot.Dotted HashedRegister
+mkFST'Test :: [ByteString] -> (StateRef, Dot.Dotted HashedRegister)
 mkFST'Test = mkFST'BS Dot.replaceOrRegister (Dot.mkDotted replaceOrRegister empty)
 
 
