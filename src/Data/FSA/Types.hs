@@ -1,6 +1,7 @@
 module Data.FSA.Types where
 
 import Data.Word (Word16, Word64)
+import Data.Ord
 import Data.Hashable
 
 
@@ -17,6 +18,9 @@ data Arc = Arc {
 --   For minimality to hold, a `Compiler` has to return the same `StateRef`
 --   for all equal [`Arc`].
 type Compiler a = [Arc] -> a -> (StateRef, a)
+
+instance Ord Arc where
+  compare = comparing arcByte
 
 instance Hashable Arc where
   hashWithSalt s (Arc b t) = s `hashWithSalt` t `hashWithSalt` b

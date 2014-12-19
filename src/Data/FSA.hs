@@ -1,16 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE BangPatterns #-}
 module Data.FSA
    where
 
-import           Data.FSA.Types
-import qualified Data.FSA.Register.Hashed as Hashed
 import qualified Data.FSA.Register.Dot as Dot
-
+import qualified Data.FSA.Register.Hashed as Hashed
+import           Data.FSA.Types
 
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString as ByteString
-import           Data.Word (Word16)
 import qualified Data.List as List
+import           Data.Word (Word16)
 
 type ReplaceOrRegister = Compiler Hashed.HashedRegister
 
@@ -82,7 +82,6 @@ compile' ror prev new@(n:nx) old@(o:ox) register
       path = (prev { ucArcs = arc:(ucArcs prev) }):new
     in (path, register')
 
-
 -- | `mkFST` creates an finite-state automaton from a sorted list of
 --   `Word16` codepoints. The compiling behaviour is pluggable.
 mkFST :: Compiler a -> a -> [[Word16]] -> (StateRef, a)
@@ -90,12 +89,12 @@ mkFST ror register0 wordx = go register0 wordx [] []
   where
     go register [] path rootArcs = (rootRef, register')
       where
-        dummyRoot                  = UncompiledState 0 rootArcs
-        (Arc _ rootRef, register') = compileSuffix ror register (dummyRoot:path)
+        dummyRoot                    = UncompiledState 0 rootArcs
+        (Arc _ !rootRef, !register') = compileSuffix ror register (dummyRoot:path)
 
-    go register (w:wx) path rootArcs = go register' wx path' (rootArcs ++ rootArcs')
+    go register (w:wx) path rootArcs = go register' wx path' (rootArcs' ++ rootArcs)
       where
-        (rootArcs', path', register') = compile ror (uncompiled w) path register
+        (!rootArcs', !path', !register') = compile ror (uncompiled w) path register
 
 mkFST'BS :: Compiler a -> a -> [ByteString] -> (StateRef, a)
 mkFST'BS ror reg bs =
@@ -132,5 +131,5 @@ testBS = ["alex", "alien", "see", "ulrich", "vogel", "zeichen", "ziehen"]
 -}
 
 testBS :: [ByteString]
-testBS = ["alex", "alien", "see", "ulrich", "vogel", "zeichen", "ziehen"]
+testBS = ["alex", "alien", "alina", "see", "ulrich", "vogel", "zeichen", "ziehen"]
 
