@@ -1,11 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Data.FSA(
-    mkFST
-  ) where
+module Data.FSA
+   where
 
 import           Data.FSA.Types
 import           Data.FSA.Register.Hashed
+import qualified Data.FSA.Register.Dot as Dot
 
+
+import           Data.ByteString.Builder
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString as ByteString
 import           Data.Word (Word16, Word64)
@@ -92,13 +94,17 @@ compile' ror prev new@(n:nx) old@(o:ox) register
 mkFST :: Compiler a -> a -> [[Word16]] -> a
 mkFST ror register wordx = go register wordx [] []
   where
-    go register []     _    rootArcs = register'
+    go register [] path rootArcs = register''
       where
-        (ref, register') = ror rootArcs register
+        (rootArc', register') = compileSuffix ror register path
+        (_, register'') = ror (rootArcs ++ [rootArc']) register'
 
     go register (w:wx) path rootArcs = go register' wx path' (rootArcs ++ rootArcs')
       where
         (rootArcs', path', register') = compile ror (uncompiled w) path register
+
+
+
 
 mkFST'BS :: Compiler a -> a -> [ByteString] -> a
 mkFST'BS ror reg bs =
@@ -113,8 +119,8 @@ finalStateRef = 0
 finalArc :: Arc
 finalArc = Arc 0 finalStateRef
 
-mkFST'Test :: [ByteString] -> HashedRegister
-mkFST'Test = mkFST'BS replaceOrRegister empty
+mkFST'Test :: [ByteString] -> Dot.Dotted HashedRegister
+mkFST'Test = mkFST'BS Dot.replaceOrRegister (Dot.mkDotted replaceOrRegister empty)
 
 
 {-
@@ -133,3 +139,7 @@ test2 = "alien"
 testBS :: [ByteString]
 testBS = ["alex", "alien", "see", "ulrich", "vogel", "zeichen", "ziehen"]
 -}
+
+testBS :: [ByteString]
+testBS = ["alex", "alien", "see", "ulrich", "vogel", "zeichen", "ziehen"]
+

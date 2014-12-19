@@ -1,0 +1,34 @@
+digraph finite_state_machine {
+rankdir=LR
+node [shape = doublecircle]; 0;
+node [shape = circle];
+1 -> 0 [ label="\$" ];
+2 -> 1 [ label="x" ];
+3 -> 1 [ label="n" ];
+4 -> 3 [ label="e" ];
+5 -> 2 [ label="e" ];
+5 -> 4 [ label="i" ];
+6 -> 5 [ label="l" ];
+7 -> 1 [ label="e" ];
+8 -> 7 [ label="e" ];
+9 -> 1 [ label="h" ];
+10 -> 9 [ label="c" ];
+11 -> 10 [ label="i" ];
+12 -> 11 [ label="r" ];
+13 -> 12 [ label="l" ];
+14 -> 1 [ label="l" ];
+15 -> 14 [ label="e" ];
+16 -> 15 [ label="g" ];
+17 -> 16 [ label="o" ];
+18 -> 4 [ label="h" ];
+19 -> 18 [ label="c" ];
+20 -> 19 [ label="i" ];
+21 -> 18 [ label="e" ];
+22 -> 20 [ label="e" ];
+22 -> 21 [ label="i" ];
+23 -> 22 [ label="z" ];
+23 -> 8 [ label="s" ];
+23 -> 6 [ label="a" ];
+23 -> 17 [ label="v" ];
+23 -> 13 [ label="u" ];
+}

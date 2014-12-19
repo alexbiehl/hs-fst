@@ -19,6 +19,7 @@ library
   exposed-modules:
     Data.FSA
     Data.FSA.Types
+    Data.FSA.Register.Dot
     Data.FSA.Register.Hashed
   -- other-modules:
   -- other-extensions:
