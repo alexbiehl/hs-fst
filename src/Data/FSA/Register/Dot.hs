@@ -1,5 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Data.FSA.Register.Dot where
+module Data.FSA.Register.Dot(
+    Dotted
+  , mkDotted
+  , buildDot
+  , replaceOrRegister
+  ) where
 
 import Data.FSA.Types
 
