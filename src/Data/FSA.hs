@@ -3,23 +3,16 @@ module Data.FSA
    where
 
 import           Data.FSA.Types
-import           Data.FSA.Register.Hashed
+import qualified Data.FSA.Register.Hashed as Hashed
 import qualified Data.FSA.Register.Dot as Dot
 
 
-import           Data.ByteString.Builder
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString as ByteString
-import           Data.Word (Word16, Word64)
-import           Data.HashMap.Strict (HashMap)
-import qualified Data.HashMap.Strict as HashMap
-import           Data.Hashable
+import           Data.Word (Word16)
 import qualified Data.List as List
-import           Data.Monoid
-import           Data.Function (on)
-import           Data.Char (chr, ord)
 
-type ReplaceOrRegister = Compiler HashedRegister
+type ReplaceOrRegister = Compiler Hashed.HashedRegister
 
 type RootArcs = [Arc]
 
@@ -32,8 +25,9 @@ compileSuffix :: Compiler a
               -> a
               -> [UncompiledState]
               -> (Arc, a)
-compileSuffix replaceOrRegister register sx = go register sx
+compileSuffix replaceOrRegister register0 suffix = go register0 suffix
   where
+    go _        [] = error "Cannot be called with empty suffix"
     go register ((UncompiledState byte arcs):sx) =
       let
         (arcs', register') = case sx of
@@ -71,9 +65,9 @@ compile' :: Compiler a
          -> [UncompiledState]
          -> a
          -> ([UncompiledState], a)
-compile' _ prev new [] register = (prev:new, register)
+compile' _  _   []  (_:_) _        = error "words not lexicographically sorted"
+compile' _ prev new []    register = (prev:new, register)
   -- New word has whole old as prefix, just path sharing
-
 compile' ror prev new@(n:nx) old@(o:ox) register
   -- New word has some common prefix
   | ucByte n == ucByte o =
@@ -92,7 +86,7 @@ compile' ror prev new@(n:nx) old@(o:ox) register
 -- | `mkFST` creates an finite-state automaton from a sorted list of
 --   `Word16` codepoints. The compiling behaviour is pluggable.
 mkFST :: Compiler a -> a -> [[Word16]] -> (StateRef, a)
-mkFST ror register wordx = go register wordx [] []
+mkFST ror register0 wordx = go register0 wordx [] []
   where
     go register [] path rootArcs = (rootRef, register')
       where
@@ -116,8 +110,8 @@ finalStateRef = 0
 finalArc :: Arc
 finalArc = Arc 0 finalStateRef
 
-mkFST'Test :: [ByteString] -> (StateRef, Dot.Dotted HashedRegister)
-mkFST'Test = mkFST'BS Dot.replaceOrRegister (Dot.mkDotted replaceOrRegister empty)
+mkFST'Test :: [ByteString] -> (StateRef, Dot.Dotted Hashed.HashedRegister)
+mkFST'Test = mkFST'BS Dot.replaceOrRegister (Dot.mkDotted Hashed.replaceOrRegister Hashed.empty)
 
 
 {-

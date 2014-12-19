@@ -19,6 +19,7 @@ data Dotted a = Dotted {
 mkDotted :: Compiler a -> a -> Dotted a
 mkDotted compiler initial = Dotted compiler initial HashSet.empty dotInit
 
+dotInit :: Builder
 dotInit = mconcat [
       "digraph finite_state_machine {\n"
     , "rankdir=LR\n"
@@ -26,6 +27,7 @@ dotInit = mconcat [
     , "node [shape = circle];\n"
     ]
 
+dotEnd :: Builder
 dotEnd = mconcat [
     "}"
   ]
