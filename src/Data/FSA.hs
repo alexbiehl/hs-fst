@@ -94,9 +94,10 @@ compile' ror prev new@(n:nx) old@(o:ox) register
 mkFST :: Compiler a -> a -> [[Word16]] -> (StateRef, a)
 mkFST ror register wordx = go register wordx [] []
   where
-    go register [] path rootArcs = (root, register')
+    go register [] path rootArcs = (rootRef, register')
       where
-        (Arc _ root, register') = compileSuffix ror register ((UncompiledState 0 rootArcs):path)
+        dummyRoot                  = UncompiledState 0 rootArcs
+        (Arc _ rootRef, register') = compileSuffix ror register (dummyRoot:path)
 
     go register (w:wx) path rootArcs = go register' wx path' (rootArcs ++ rootArcs')
       where
