@@ -21,12 +21,16 @@ library
     Data.FSA.Types
     Data.FSA.Register.Dot
     Data.FSA.Register.Hashed
+    Data.FSA.Register.Binary
+    Data.FSA.Register.Binary.Lookup
   -- other-modules:
   -- other-extensions:
   build-depends:       base >=4.7 && <4.8,
                        unordered-containers,
                        bytestring,
+                       blaze-builder,
                        hashable
+
   hs-source-dirs:      src
 
 

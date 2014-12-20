@@ -5,6 +5,8 @@ module Data.FSA
 
 import qualified Data.FSA.Register.Dot as Dot
 import qualified Data.FSA.Register.Hashed as Hashed
+import qualified Data.FSA.Register.Binary as Binary
+
 import           Data.FSA.Types
 
 import           Data.ByteString (ByteString)
@@ -12,7 +14,7 @@ import qualified Data.ByteString as ByteString
 import qualified Data.List as List
 import           Data.Word (Word16)
 
-type ReplaceOrRegister = Compiler Hashed.HashedRegister
+type ReplaceOrRegister = Compiler Binary.BinaryRegister
 
 type RootArcs = [Arc]
 
@@ -109,8 +111,8 @@ finalStateRef = 0
 finalArc :: Arc
 finalArc = Arc 0 finalStateRef
 
-mkFST'Test :: [ByteString] -> (StateRef, Dot.Dotted Hashed.HashedRegister)
-mkFST'Test = mkFST'BS Dot.replaceOrRegister (Dot.mkDotted Hashed.replaceOrRegister Hashed.empty)
+mkFST'Test :: [ByteString] -> (StateRef, Dot.Dotted Binary.BinaryRegister)
+mkFST'Test = mkFST'BS Dot.replaceOrRegister (Dot.mkDotted Binary.replaceOrRegister Binary.empty)
 
 
 {-
