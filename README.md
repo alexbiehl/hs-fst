@@ -16,6 +16,6 @@ Plans
 -----
 
 * Introduce Typeclass for compilation backends.
-* Pseudo minimal finite-state automaton for storing `Word64` in an optimized binary format.
+* Pseudo minimal finite-state automaton for storing any `Storable`s in an optimized binary format.
 * Minimal finite-state automaton using perfect hashing in an optimized binary format.
 * Levenshtein automata implementation for fuzzy searching the binary representations.
