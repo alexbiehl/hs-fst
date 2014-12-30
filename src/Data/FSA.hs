@@ -27,10 +27,10 @@ compileSuffix :: Compiler a
               -> a
               -> [UncompiledState]
               -> (Arc, a)
-compileSuffix replaceOrRegister register0 suffix = go register0 suffix
+compileSuffix replaceOrRegister = go
   where
     go _        [] = error "Cannot be called with empty suffix"
-    go register ((UncompiledState byte arcs):sx) =
+    go register (UncompiledState byte arcs : sx) =
       let
         (arcs', register') = case sx of
           [] -> (arcs, register)
@@ -43,7 +43,7 @@ compileSuffix replaceOrRegister register0 suffix = go register0 suffix
 uncompiled :: [Word16]
            -> [UncompiledState]
 uncompiled []     = []
-uncompiled (w:wx) = (UncompiledState w arcs):(uncompiled wx)
+uncompiled (w:wx) = UncompiledState w arcs : uncompiled wx
   where
     arcs = if List.null wx then [finalArc] else []
 
@@ -81,7 +81,7 @@ compile' ror prev new@(n:nx) old@(o:ox) register
     -- If we reached unequal prefixes, compile suffix of old word
     let
       (arc, register') = compileSuffix ror register old
-      path = (prev { ucArcs = arc:(ucArcs prev) }):new
+      path = (prev { ucArcs = arc:ucArcs prev }):new
     in (path, register')
 
 -- | `mkFST` creates an finite-state automaton from a sorted list of
@@ -134,4 +134,3 @@ testBS = ["alex", "alien", "see", "ulrich", "vogel", "zeichen", "ziehen"]
 
 testBS :: [ByteString]
 testBS = ["alex", "alien", "alina", "see", "ulrich", "vogel", "zeichen", "ziehen"]
-
