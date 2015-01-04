@@ -77,14 +77,15 @@ mkFST :: ReplaceOrRegister s a -> s -> [([Word8], a)] -> (StateRef, s)
 mkFST ror register0 wordx = go register0 wordx [root]
   where
     root = UncompiledState 0 [] Nothing
+    go register [] path =
+      let
+        (rootArc, register') = compileSuffix ror path register
+      in (arcTarget rootArc, register')
+    go register ((w, a):wx) path =
+      let
+        (path', register') = compile ror (uncompile w a) path register
+      in go register' wx path'
 
-    go register [] path = (rootRef, register')
-      where
-        (Arc _ _ !rootRef, !register') = compileSuffix ror path register
-
-    go register ((w, a):wx) path = go register' wx path'
-      where
-        (!path', !register') = compile ror (uncompile w a) path register
 
 mkFST'BS :: ReplaceOrRegister s () -> s -> [ByteString] -> (StateRef, s)
 mkFST'BS ror reg =
