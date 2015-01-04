@@ -10,7 +10,7 @@ import           Data.ByteString.Lazy.Char8 (unpack)
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString as ByteString
 import qualified Data.List as List
-import           Data.Word (Word8, Word32)
+import           Data.Word (Word8)
 
 uncompile :: [Word8] -> a -> [UncompiledState a]
 uncompile []     _ = []
@@ -41,6 +41,7 @@ compile :: ReplaceOrRegister s a
         -> [UncompiledState a]
         -> s
         -> ([UncompiledState a], s)
+compile _   _   []          = error "compile: empty path"
 compile ror new (root:rest) = compile' ror root new rest
 
 compile' :: ReplaceOrRegister s a
