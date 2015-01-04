@@ -12,13 +12,14 @@ import qualified Data.HashSet as HashSet
 import           Data.Monoid
 
 data Dotted s a = Dotted {
-    dotState :: !s
-  , dotRor   :: !(ReplaceOrRegister s a)
-  , dotBuild :: !Builder
+    dotState    :: !s
+  , dotRor      :: !(ReplaceOrRegister s a)
+  , dotRendered :: !(HashSet ByteString)
+  , dotBuild    :: !Builder
   }
 
 empty :: s -> ReplaceOrRegister s a -> Dotted s a
-empty s0 ror = Dotted s0 ror mempty
+empty s0 ror = Dotted s0 ror mempty mempty
 
 showDot :: Dotted s a -> ByteString
 showDot dot =
@@ -30,11 +31,14 @@ dotted node dot = (arc, dot')
     (arc@(Arc _ _ stateRef), s') = dotRor dot node (dotState dot)
 
     dot' = dot {
-        dotState = s'
-      , dotBuild = dotBuild dot `mappend` shown
+        dotState    = s'
+      , dotBuild    = dotBuild dot `mappend` mconcat (fmap lazyByteString shown')
+      , dotRendered = HashSet.fromList shown `HashSet.union` dotRendered dot
       }
 
-    shown = mconcat $ map (dotArcFromTo stateRef) (ucArcs node)
+    shown  = fmap (toLazyByteString . dotArcFromTo stateRef) (ucArcs node)
+    shown' = HashSet.toList $ HashSet.fromList shown `HashSet.difference` dotRendered dot
+
 
 dotInit :: Builder
 dotInit = mconcat [
@@ -57,7 +61,7 @@ dotArcFromTo from (Arc label numWords to) =
  , word64Dec to
  , " [ label=\""
  , correctedLabel
- , "/#"
+ , "/"
  , word32Dec numWords
  , "\" ];\n"
  ]

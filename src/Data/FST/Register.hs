@@ -20,7 +20,7 @@ data Register a = Register {
 
 empty :: Register a
 empty = Register {
-    regStates  = HashMap.fromList [ ([finalArc], 0) ]
+    regStates  = HashMap.fromList []
   , regNextRef = 1
   }
 
