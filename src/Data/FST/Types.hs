@@ -18,9 +18,6 @@ data UncompiledState a = UncompiledState {
   , ucOutput :: !(Maybe a)
   } deriving (Eq, Show)
 
-data Node a = Node ![Arc] !(Maybe a)
-            deriving (Eq, Show)
-
 type ReplaceOrRegister s a = UncompiledState a -> s -> (Arc, s)
 
 instance Hashable Arc where
