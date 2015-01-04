@@ -12,8 +12,6 @@ import qualified Data.ByteString as ByteString
 import qualified Data.List as List
 import           Data.Word (Word8, Word32)
 
-type RootArcs = [Arc]
-
 uncompile :: [Word8] -> a -> [UncompiledState a]
 uncompile []     _ = []
 uncompile (w:wx) a = UncompiledState w arcs output : uncompile wx a
