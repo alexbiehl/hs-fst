@@ -42,12 +42,11 @@ compile :: ReplaceOrRegister s a
         -> [UncompiledState a]
         -> [UncompiledState a]
         -> s
-        -> (RootArcs, [UncompiledState a], s)
-compile ror new old register = (rootArcs, path, register')
+        -> ([UncompiledState a], s)
+compile ror new old = compile' ror root new rest
   where
-    dummyRoot                      = UncompiledState 0 [] Nothing
-    (root:path, register')         = compile' ror dummyRoot new old register
-    (UncompiledState _ rootArcs _) = root
+    root = head old
+    rest = tail old
 
 compile' :: ReplaceOrRegister s a
          -> UncompiledState a
@@ -75,16 +74,17 @@ compile' ror prev new@(n:nx) old@(o:ox) register
 -- | `mkFST` creates an finite-state automaton from a sorted list of
 --   `Word16` codepoints. The compiling behaviour is pluggable.
 mkFST :: ReplaceOrRegister s a -> s -> [([Word8], a)] -> (StateRef, s)
-mkFST ror register0 wordx = go register0 wordx [] []
+mkFST ror register0 wordx = go register0 wordx [root]
   where
-    go register [] path rootArcs = (rootRef, register')
-      where
-        dummyRoot                     = UncompiledState 0 rootArcs Nothing
-        (Arc _ _ !rootRef, !register') = compileSuffix ror (dummyRoot:path) register
+    root = UncompiledState 0 [] Nothing
 
-    go register ((w, a):wx) path rootArcs = go register' wx path' (rootArcs' ++ rootArcs)
+    go register [] path = (rootRef, register')
       where
-        (!rootArcs', !path', !register') = compile ror (uncompile w a) path register
+        (Arc _ _ !rootRef, !register') = compileSuffix ror path register
+
+    go register ((w, a):wx) path = go register' wx path'
+      where
+        (!path', !register') = compile ror (uncompile w a) path register
 
 mkFST'BS :: ReplaceOrRegister s () -> s -> [ByteString] -> (StateRef, s)
 mkFST'BS ror reg =
