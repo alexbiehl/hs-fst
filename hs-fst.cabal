@@ -17,12 +17,10 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:
-    Data.FSA
-    Data.FSA.Types
-    Data.FSA.Register.Dot
-    Data.FSA.Register.Hashed
-    Data.FSA.Register.Binary
-    Data.FSA.Register.Binary.Lookup
+    Data.FST
+    Data.FST.Types
+    Data.FST.Register
+    Data.FST.Register.Dot
   -- other-modules:
   -- other-extensions:
   build-depends:       base >=4.7 && <4.8,
