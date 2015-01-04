@@ -43,10 +43,7 @@ compile :: ReplaceOrRegister s a
         -> [UncompiledState a]
         -> s
         -> ([UncompiledState a], s)
-compile ror new old = compile' ror root new rest
-  where
-    root = head old
-    rest = tail old
+compile ror new (root:rest) = compile' ror root new rest
 
 compile' :: ReplaceOrRegister s a
          -> UncompiledState a
