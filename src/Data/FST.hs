@@ -6,7 +6,8 @@ import           Data.FST.Types
 import qualified Data.FST.Register as Register
 import qualified Data.FST.Register.Dot as Dot
 
-import           Data.ByteString
+import           Data.ByteString.Lazy.Char8 (unpack)
+import           Data.ByteString (ByteString)
 import qualified Data.ByteString as ByteString
 import qualified Data.List as List
 import           Data.Word (Word8, Word32)
@@ -96,4 +97,4 @@ dotRegister = Dot.empty Register.empty Register.replaceOrRegister
 
 dotAutomaton = Dot.showDot $ snd $ mkFST'BS Dot.dotted dotRegister testBS
 
-test = print dotAutomaton
+test = putStrLn (unpack dotAutomaton)

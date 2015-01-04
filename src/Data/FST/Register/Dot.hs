@@ -21,7 +21,8 @@ empty :: s -> ReplaceOrRegister s a -> Dotted s a
 empty s0 ror = Dotted s0 ror mempty
 
 showDot :: Dotted s a -> ByteString
-showDot = toLazyByteString . dotBuild
+showDot dot =
+  toLazyByteString $ dotInit `mappend` dotBuild dot `mappend` dotEnd
 
 dotted :: ReplaceOrRegister (Dotted s a) a
 dotted node dot = (arc, dot')
