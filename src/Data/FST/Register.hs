@@ -5,14 +5,13 @@ module Data.FST.Register(
   , replaceOrRegister
   ) where
 
-import           Data.FST.Types
+import Data.FST.Types
+import Foreign.Storable
+import Data.Word (Word32)
+import Data.HashMap.Strict (HashMap)
 import qualified Data.Foldable as Foldable
-import           Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HashMap
 import qualified Data.List as List
-import           Data.Monoid
-import           Data.Word (Word32)
-import           Foreign.Storable
 
 data Register a = Register {
     regStates   :: !(HashMap [Arc] StateRef)
@@ -49,4 +48,6 @@ replaceOrRegister node register =
       , regNextRef = (regNextRef register) + 1
       }
 
-    numWords = Foldable.foldMap (Sum . arcNumWords) arcs
+    numWords = Foldable.foldl' (+) 0
+               $ fmap arcNumWords
+               $ arcs
