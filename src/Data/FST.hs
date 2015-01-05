@@ -37,28 +37,20 @@ compileSuffix replaceOrRegister = go
       in replaceOrRegister node register'
 
 compile :: ReplaceOrRegister s a
+        -> UncompiledState a
         -> [UncompiledState a]
         -> [UncompiledState a]
         -> s
         -> ([UncompiledState a], s)
-compile _   _   []          = error "compile: empty path"
-compile ror new (root:rest) = compile' ror root new rest
-
-compile' :: ReplaceOrRegister s a
-         -> UncompiledState a
-         -> [UncompiledState a]
-         -> [UncompiledState a]
-         -> s
-         -> ([UncompiledState a], s)
-compile' _  _   []  (_:_) _        = error "compile: No lexicographic order"
-compile' _ prev new []    register = (prev:new, register)
+compile _  _   []  (_:_) _        = error "compile: No lexicographic order"
+compile _ prev new []    register = (prev:new, register)
   -- New word has whole old as prefix, just path sharing
-compile' ror prev new@(n:nx) old@(o:ox) register
+compile ror prev new@(n:nx) old@(o:ox) register
   -- New word has some common prefix
   | ucLabel n == ucLabel o =
     -- If words are equal, recurse
     let
-      (path, register') = compile' ror o nx ox register
+      (path, register') = compile ror o nx ox register
     in (prev:path, register')
   | otherwise =
     -- If we reached unequal prefixes, compile suffix of old word
@@ -70,16 +62,17 @@ compile' ror prev new@(n:nx) old@(o:ox) register
 -- | `mkFST` creates an finite-state automaton from a sorted list of
 --   `Word16` codepoints. The compiling behaviour is pluggable.
 mkFST :: ReplaceOrRegister s a -> s -> [([Word8], a)] -> (StateRef, s)
-mkFST ror register0 wordx = go register0 wordx [root]
+mkFST ror register0 wordx = go register0 wordx [rootNode]
   where
-    root = UncompiledState 0 [] Nothing
-    go register [] path =
+    rootNode = UncompiledState 0 [] Nothing
+    go _        (_:_) [] = error "mkFST: empty path"
+    go register []    path =
       let
         (rootArc, register') = compileSuffix ror path register
       in (arcTarget rootArc, register')
-    go register ((w, a):wx) path =
+    go register ((w, a):wx) (root:rest) =
       let
-        (path', register') = compile ror (uncompile w a) path register
+        (path', register') = compile ror root (uncompile w a) rest register
       in go register' wx path'
 
 
