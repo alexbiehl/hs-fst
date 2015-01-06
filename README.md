@@ -4,7 +4,7 @@ needed to ensure fast lookup times.
 This library implements the algorithm introduced in `Incremental Construction of Minimal Acyclic finite-state Automata` by Jan Daciuk and Stoyan Mihov et al. Since simple automaton representations based on maps and sets are not very space efficient this library
 compiles those automatons into efficient byte representations on-the-fly. A similar technique is used by Lucene.
 
-![](https://raw.githubusercontent.com/alexbiehl/hs-fst/master/test.svg)
+![](https://raw.githubusercontent.com/alexbiehl/hs-fst/master/test.png)
 
 
 Status
