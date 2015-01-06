@@ -44,6 +44,7 @@ dotInit :: Builder
 dotInit = mconcat [
       "digraph finite_state_machine {\n"
     , "rankdir=LR\n"
+    , "forcelabels=true\n"
     , "node [shape = doublecircle]; 0;\n"
     , "node [shape = circle];\n"
     ]
@@ -56,13 +57,15 @@ dotEnd = mconcat [
 dotArcFromTo :: StateRef -> Arc -> Builder
 dotArcFromTo from (Arc label numWords to) =
  mconcat [
-   word64Dec from
+   word64Dec to
+ , " [xlabel=<<font color=\"red\">"
+ , word32Dec numWords
+ , "</font>>];\n"
+ , word64Dec from
  , " -> "
  , word64Dec to
  , " [ label=\""
  , correctedLabel
- , "/"
- , word32Dec numWords
  , "\" ];\n"
  ]
  where
