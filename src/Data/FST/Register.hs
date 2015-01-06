@@ -13,8 +13,11 @@ import qualified Data.Foldable as Foldable
 import qualified Data.HashMap.Strict as HashMap
 import qualified Data.List as List
 
+data Entry = E !StateRef !Word32
+            deriving (Eq, Show)
+
 data Register a = Register {
-    regStates   :: !(HashMap [Arc] StateRef)
+    regStates   :: !(HashMap [Arc] Entry)
   , regNextRef  :: !StateRef
   } deriving (Eq, Show)
 
@@ -37,14 +40,14 @@ replaceOrRegister ::
   -> (Arc, Register a)
 replaceOrRegister node register =
   case HashMap.lookup arcs (regStates register) of
-   Just stateRef -> (Arc label numWords stateRef, register)
-   Nothing       -> (Arc label numWords (regNextRef register), register')
+   Just (E stateRef n) -> (Arc label n stateRef, register)
+   Nothing             -> (Arc label numWords (regNextRef register), register')
   where
     UncompiledState label arcs output = node
 
     register' = register {
         regStates  = HashMap.insert arcs
-                     (regNextRef register) (regStates register)
+                     (E (regNextRef register) numWords) (regStates register)
       , regNextRef = (regNextRef register) + 1
       }
 
