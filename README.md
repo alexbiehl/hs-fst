@@ -75,7 +75,7 @@ Output arcs are considered final arcs. (Needs rethinking)
 
 * If `SIN` flag is set treat `State` as single `Arc`
 
-If compressed the the number of transitions will be omitted. Since the `FIN` flag indicates end of arcs.
+If compressed the the number of transitions will be omitted. Since the `LAS` flag indicates end of arcs.
 
 Plans
 -----
