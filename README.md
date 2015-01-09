@@ -34,11 +34,13 @@ Transducer memory layout
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ```
 
-* `SIN` Indicates `Arc` is a `State` with a single transition.
-* `NEX` Omit `Weight` and `Target` address since the target state is placed directly after this arc. `NEX` will only be set in combination with `SIN`.
+* `SIN` Indicates `Arc` is a `State` with a single transition, omit `Weight` field.
+* `NEX` Omit `Weight` and `Target`-address since the target state is placed directly after this arc. `NEX` will only be set in combination with `SIN`.
 * `LAS` Indicates the last `Arc` in this `State`. (Only used if transducer is compressed)
 * `OUT` This is an output transition. This will be described below.
-* `FIN` This is a final transition.
+* `FIN` This is a final transition. (Only used if transducer is compressed)
+
+In this context, compression means that all fields are length encoded (Except flags). Since the fields in the compressed fst don't have contant length traversal of such transducers is a linear search instead of binary search.
 
 ## Arc with output (only pseudo minimal setting)
 
@@ -72,6 +74,8 @@ Output arcs are considered final arcs. (Needs rethinking)
 ```
 
 * If `SIN` flag is set treat `State` as single `Arc`
+
+If compressed the the number of transitions will be omitted. Since the `FIN` flag indicates end of arcs.
 
 Plans
 -----
