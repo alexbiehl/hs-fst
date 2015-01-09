@@ -26,6 +26,8 @@ Transducer memory layout
    |I|E|A|U|I|                   Label                             |
    |N|X|S|T|N|                                                     |
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                          Weight                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
    |                          Target                               |
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
    |                          Target (contd.)                      |
@@ -33,10 +35,24 @@ Transducer memory layout
 ```
 
 * `SIN` Indicates `Arc` is a `State` with a single transition.
-* `NEX` Omit `Target` address since the target state is placed directly after this arc. `NEX` will only be set in combination with `SIN`
+* `NEX` Omit `Weight` and `Target` address since the target state is placed directly after this arc. `NEX` will only be set in combination with `SIN`.
 * `LAS` Indicates the last `Arc` in this `State`. (Only used if transducer is compressed)
 * `OUT` This is an output transition. This will be described below.
 * `FIN` This is a final transition.
+
+## Arc with output (only pseudo minimal setting)
+
+```
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |     |1|           Output size                                 |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                          Output                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+```
+
+Output arcs are considered final arcs. (Needs rethinking)
 
 ## State
 ```
