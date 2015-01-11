@@ -25,9 +25,11 @@ import           Foreign.Storable
 data Entry = E !StateRef !Word32
             deriving (Eq, Show)
 
+type TransducerSize = Word64
+
 data Register a = Register {
     regStates   :: !(HashMap [Arc] Entry)
-  , regSize     :: !Word64
+  , regSize     :: !TransducerSize
   , regBuilder  :: !Builder
   }
 
@@ -69,10 +71,6 @@ replaceOrRegister (UncompiledState label arcs output) register =
     numWords = Foldable.foldl' (+) 0
                $ fmap arcNumWords
                $ arcs
-
-type TransducerSize = Word64
-
-type Weight = Word32
 
 compileArcs :: TransducerSize -> [Arc] -> (Word64, Builder)
 compileArcs size arcs =
