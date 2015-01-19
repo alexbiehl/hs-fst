@@ -47,6 +47,8 @@ finalArc = Arc {
   , arcTarget   = 0
   }
 
+
+
 finalize :: Register a -> ByteString
 finalize = Blaze.toByteString . regBuilder
 
@@ -56,8 +58,9 @@ replaceOrRegister ::
   -> (Arc, Register a)
 replaceOrRegister (UncompiledState label arcs output) register =
   case HashMap.lookup arcs (regStates register) of
-   Just (E stateRef n) -> (Arc label n stateRef, register)
-   Nothing             -> (Arc label numWords (regSize register'), register')
+   Just (E stateRef n) | n == 1    -> (Arc label n stateRef, register)
+                       | otherwise -> writeOutput register
+   _                   -> (Arc label numWords (regSize register'), register')
   where
     register' = register {
         regStates  = HashMap.insert arcs
@@ -66,24 +69,29 @@ replaceOrRegister (UncompiledState label arcs output) register =
       , regBuilder = compiledArcs `mappend` regBuilder register
       }
 
-    (compiledSize, compiledArcs) = compileArcs (regSize register) arcs
+    (numWords, compiledSize, compiledArcs) = compileArcs (regSize register) arcs
 
-    numWords = Foldable.foldl' (+) 0
-               $ fmap arcNumWords
-               $ arcs
+writeOutput :: Register a -> (Arc, Register a)
+writeOutput register = (arc, register')
+  where
+    register' = register {
+        regSize  = (regSize register)
+      , regBuilder = regBuilder register
+      }
+    arc = Arc 0 0 (regSize register')
 
-compileArcs :: TransducerSize -> [Arc] -> (Word64, Builder)
+compileArcs :: TransducerSize -> [Arc] -> (Weight, Word64, Builder)
 compileArcs size arcs =
-  (fromIntegral (Blaze.getBound write), Blaze.fromWrite write)
+  (weight, fromIntegral (Blaze.getBound bytes), Blaze.fromWrite bytes)
   where
-    write = case arcs of
-             (arc:[]) -> compileSimpleArc size arc
-             _        -> compileMultipleArcs size arcs
+    (weight, bytes) = case arcs of
+                       (arc:[]) -> (arcNumWords arc, compileSimpleArc size arc)
+                       _        -> compileMultipleArcs size arcs
 
-compileMultipleArcs :: TransducerSize -> [Arc] -> Blaze.Write
-compileMultipleArcs size arcs = Blaze.writeWord32be length `mappend` bytes
+compileMultipleArcs :: TransducerSize -> [Arc] -> (Weight, Blaze.Write)
+compileMultipleArcs size arcs = (numWords, Blaze.writeWord32be length `mappend` bytes)
   where
-    (length, _, bytes) = go arcs
+    (length, numWords, bytes) = go arcs
 
     go :: [Arc] -> (Word32, Weight, Blaze.Write)
     go []     = (0, 0, mempty)
@@ -93,7 +101,7 @@ compileMultipleArcs size arcs = Blaze.writeWord32be length `mappend` bytes
         weight' = weight + arcNumWords a
 
         write' = Blaze.writeWord32be (fromIntegral (arcLabel a))
-                 `mappend` Blaze.writeWord32be weight'
+                 `mappend` Blaze.writeWord32be weight
                  `mappend` Blaze.writeWord64be (size - arcTarget a)
 
 compileSimpleArc :: TransducerSize -> Arc -> Blaze.Write
