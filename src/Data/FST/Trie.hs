@@ -1,10 +1,10 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE TypeFamilies #-}
 module Data.FST.Trie where
 
 import           Blaze.ByteString.Builder (Builder)
 import qualified Blaze.ByteString.Builder as Blaze
 import qualified Blaze.ByteString.Builder.Internal.Write as Blaze
-import qualified Blaze.ByteString.Builder.Word as Blaze
 import           Control.DeepSeq
 import           Data.Bits
 import           Data.ByteString (ByteString)
@@ -25,6 +25,12 @@ data Register = Register {
   , regBuffer :: !Builder
   }
 
+instance Register1 Register where
+  type Output Register = Trie
+  empty             = Data.FST.Trie.empty
+  output            = Data.FST.Trie.output
+  replaceOrRegister = Data.FST.Trie.replaceOrRegister
+
 type Offset = Word64
 
 empty :: Register
@@ -40,7 +46,7 @@ isFinalArc = (Arcs.final ==)
 
 replaceOrRegister :: UncompiledState -> Register -> (Arc -> Register -> a) -> a
 replaceOrRegister (UncompiledState label arcs) register k =
-  k (Arc label 0 (regOffset register)) register'
+  k (Arc label 0 (regOffset register')) register'
   where
     register' = register {
         regOffset = offset'
