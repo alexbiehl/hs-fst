@@ -22,6 +22,7 @@ library
                        Data.FST.Packed
                        Data.FST.Register             
                        Data.FST.Trie
+                       Data.FST.Trie.Lookup
 
   other-modules:       Data.FST.Types
   -- other-extensions:    
@@ -41,10 +42,18 @@ library
   ghc-options:         -fprof-auto
 
   hs-source-dirs:      src
+
   default-language:    Haskell2010
 
 executable fst-dot
   main-is:             Dot.hs
+  default-language:    Haskell2010
+  build-depends:       base >=4.7 && <4.8
+                     , bytestring
+                     , fst1
+
+executable fst-lookup
+  main-is:             Lookup.hs
   default-language:    Haskell2010
   build-depends:       base >=4.7 && <4.8
                      , bytestring

@@ -34,7 +34,7 @@ instance Register1 Register where
 type Offset = Word64
 
 empty :: Register
-empty = Register 0 0 mempty
+empty = Register 0 1 mempty
 
 output :: Register -> Trie
 output = Trie . Blaze.toByteString . regBuffer
@@ -64,8 +64,8 @@ replaceOrRegister (UncompiledState label arcs) register k =
 compileFinalArc :: Weight -> (Int, Builder)
 compileFinalArc weight = (Blaze.getBound bytes, Blaze.fromWrite bytes)
  where
-   bytes =  Blaze.writeWord16be 0
-           `mappend` Blaze.writeWord32be weight
+   bytes =  Blaze.writeWord8 0xE0
+           `mappend` Blaze.writeWord32le weight
 {-# INLINE compileFinalArc #-}
 
 compileArcs :: Offset -> Arcs -> (Int, Builder)
@@ -78,15 +78,16 @@ compileArcs offset arcs = (Blaze.getBound bytes, Blaze.fromWrite bytes)
 
 compileMultipleArcs :: Offset -> Arcs -> Blaze.Write
 compileMultipleArcs offset arcs =
-  Blaze.writeWord32be (fromIntegral $ Arcs.length arcs)
+  Blaze.writeWord8 0
+  `mappend` Blaze.writeWord32le (fromIntegral $ Arcs.length arcs)
   `mappend` go (Arcs.arcs arcs)
   where
     go :: [Arc] -> Blaze.Write
     go []     = mempty
     go (Arc label _ target : ax) =
       go ax
-      `mappend` Blaze.writeWord16be (fromIntegral label)
-      `mappend` Blaze.writeWord64be (offset - target)
+      `mappend` Blaze.writeWord8 label
+      `mappend` Blaze.writeWord64le (offset - target)
 {-# INLINE compileMultipleArcs #-}
 
 compileSimpleArc :: Offset -> Arc -> Blaze.Write
@@ -98,14 +99,14 @@ compileSimpleArc offset arc | isPrevious = compileSingleNextArc arc
 
 compileSingleArc :: Offset -> Arc -> Blaze.Write
 compileSingleArc offset (Arc label _ target) =
-  Blaze.writeWord16be word `mappend` Blaze.writeWord64be (offset - target)
+  Blaze.writeWord16le word `mappend` Blaze.writeWord64le (offset - target)
   where
     word :: Word16
-    word = 0x8000 .|. (fromIntegral label .&. 0x00F)
+    word = 0x8000 .|. (fromIntegral label .&. 0x00FF)
 {-# INLINE compileSingleArc #-}
 
 compileSingleNextArc :: Arc -> Blaze.Write
-compileSingleNextArc (Arc label _ _) = Blaze.writeWord16be word
+compileSingleNextArc (Arc label _ _) = Blaze.writeWord16le word
   where
     word :: Word16
     word = 0xC000 .|. (fromIntegral label .&. 0x00FF)

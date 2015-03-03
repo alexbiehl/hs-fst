@@ -1,5 +1,5 @@
 {-# LANGUAGE BangPatterns #-}
-module Data.FST(compileList1, compileList2, compileList3, compileListDot) where
+module Data.FST(compileList1, compileList2, compileList3, compileListTrie, compileListDot) where
 
 import           Data.FST.Types
 import           Data.Word
@@ -51,7 +51,7 @@ compile ror prev new@(n:nx) old@(o:ox) r k
 {-# INLINE compile #-}
 
 compileList :: ReplaceOrRegister r (StateRef, r) -> r -> [[Word8]] -> (StateRef, r)
-compileList ror reg ws = go ws [UncompiledState 0 Arcs.empty] reg
+compileList ror reg ws = go ws [UncompiledState 255 Arcs.empty] reg
   where
     result rootArc r'     = (Arcs.arcTarget rootArc, r')
 
@@ -68,6 +68,9 @@ compileList2 = compileList Trie.replaceOrRegister Trie.empty
 
 compileList3 :: Register1 a => [[Word8]] -> (StateRef, a)
 compileList3 = compileList replaceOrRegister empty
+
+compileListTrie :: [[Word8]] -> (StateRef, Trie.Register)
+compileListTrie = compileList3
 
 compileListDot :: [[Word8]] -> (StateRef, Dot.Register Trie.Register)
 compileListDot = compileList3
